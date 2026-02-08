@@ -1,0 +1,77 @@
+@import "tailwindcss";
+@import "katex/dist/katex.min.css";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --sidebar-bg: #f8f9fa;
+  --sidebar-border: #e5e7eb;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --accent: #6366f1;
+  --accent-light: #e0e7ff;
+  --muted: #6b7280;
+  --phase1: #8b5cf6;
+  --phase2: #06b6d4;
+  --phase3: #10b981;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-muted: var(--muted);
+  --color-phase1: var(--phase1);
+  --color-phase2: var(--phase2);
+  --color-phase3: var(--phase3);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --sidebar-bg: #111111;
+    --sidebar-border: #2a2a2a;
+    --card-bg: #161616;
+    --card-border: #2a2a2a;
+    --accent: #818cf8;
+    --accent-light: #1e1b4b;
+    --muted: #9ca3af;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.katex-display {
+  margin: 1em 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.katex {
+  font-size: 1.1em !important;
+}
+
+.math-highlight {
+  background: var(--accent-light);
+  border-radius: 4px;
+  padding: 2px 4px;
+  transition: background 0.2s;
+}
+
+.code-line-highlight {
+  background: var(--accent-light);
+  display: block;
+  transition: background 0.2s;
+}

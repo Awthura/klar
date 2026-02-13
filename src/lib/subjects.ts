@@ -106,6 +106,46 @@ export const subjects: Subject[] = [
         complexity: "Varies",
         category: "Optimization",
       },
+      {
+        slug: "a-star",
+        name: "A* Search",
+        description:
+          "Pathfinding with heuristic guidance — combines Dijkstra's optimality with greedy best-first speed.",
+        complexity: "O((V + E) log V)",
+        category: "Graphs",
+      },
+      {
+        slug: "topological-sort",
+        name: "Topological Sort",
+        description:
+          "Order vertices of a directed acyclic graph so every edge goes from earlier to later in the ordering.",
+        complexity: "O(V + E)",
+        category: "Graphs",
+      },
+      {
+        slug: "union-find",
+        name: "Union-Find (Disjoint Set)",
+        description:
+          "Efficiently track and merge disjoint sets using union by rank and path compression.",
+        complexity: "O(α(n))",
+        category: "Data Structures",
+      },
+      {
+        slug: "trie",
+        name: "Trie (Prefix Tree)",
+        description:
+          "A tree-shaped data structure for efficient string storage, search, and prefix matching.",
+        complexity: "O(m)",
+        category: "Data Structures",
+      },
+      {
+        slug: "insertion-sort",
+        name: "Insertion Sort",
+        description:
+          "Build a sorted array one element at a time by inserting each into its correct position.",
+        complexity: "O(n²)",
+        category: "Sorting",
+      },
     ],
   },
 ];

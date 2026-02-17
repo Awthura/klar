@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import PhaseHeader from "@/components/shared/PhaseHeader";
 import StepControls from "@/components/shared/StepControls";
 import MathBlock from "@/components/shared/MathBlock";
-import ScatterPlot, { useScales } from "@/components/shared/ml/ScatterPlot";
+import ScatterPlot from "@/components/shared/ml/ScatterPlot";
 import LossCurve from "@/components/shared/ml/LossCurve";
 import { linearRegressionTrace, lrData } from "@/lib/traces/linearRegression";
 
@@ -31,9 +31,7 @@ export default function LinearRegressionVisualPhase() {
   );
 
   const points = lrData.map((d) => ({ x: d.x, y: d.y }));
-  const { scaleX, scaleY } = useScales(points, PLOT_W, PLOT_H, X_RANGE, Y_RANGE);
 
-  // Regression line endpoints
   const lineX1 = X_RANGE[0];
   const lineX2 = X_RANGE[1];
   const lineY1 = current.w * lineX1 + current.b;
@@ -62,44 +60,48 @@ export default function LinearRegressionVisualPhase() {
               xRange={X_RANGE}
               yRange={Y_RANGE}
             >
-              {/* Regression line */}
-              <motion.line
-                x1={scaleX(lineX1)}
-                y1={scaleY(lineY1)}
-                x2={scaleX(lineX2)}
-                y2={scaleY(lineY2)}
-                stroke="#22c55e"
-                strokeWidth={2}
-                animate={{
-                  x1: scaleX(lineX1),
-                  y1: scaleY(lineY1),
-                  x2: scaleX(lineX2),
-                  y2: scaleY(lineY2),
-                }}
-                transition={{ duration: 0.4 }}
-              />
-
-              {/* Residual lines */}
-              {lrData.map((d, i) => {
-                const pred = current.w * d.x + current.b;
-                return (
+              {(sx, sy) => (
+                <>
+                  {/* Regression line */}
                   <motion.line
-                    key={i}
-                    x1={scaleX(d.x)}
-                    y1={scaleY(d.y)}
-                    x2={scaleX(d.x)}
-                    y2={scaleY(pred)}
-                    stroke="#ef4444"
-                    strokeWidth={1}
-                    strokeDasharray="3,2"
-                    opacity={0.6}
+                    x1={sx(lineX1)}
+                    y1={sy(lineY1)}
+                    x2={sx(lineX2)}
+                    y2={sy(lineY2)}
+                    stroke="#22c55e"
+                    strokeWidth={2}
                     animate={{
-                      y2: scaleY(pred),
+                      x1: sx(lineX1),
+                      y1: sy(lineY1),
+                      x2: sx(lineX2),
+                      y2: sy(lineY2),
                     }}
                     transition={{ duration: 0.4 }}
                   />
-                );
-              })}
+
+                  {/* Residual lines */}
+                  {lrData.map((d, i) => {
+                    const pred = current.w * d.x + current.b;
+                    return (
+                      <motion.line
+                        key={i}
+                        x1={sx(d.x)}
+                        y1={sy(d.y)}
+                        x2={sx(d.x)}
+                        y2={sy(pred)}
+                        stroke="#ef4444"
+                        strokeWidth={1}
+                        strokeDasharray="3,2"
+                        opacity={0.6}
+                        animate={{
+                          y2: sy(pred),
+                        }}
+                        transition={{ duration: 0.4 }}
+                      />
+                    );
+                  })}
+                </>
+              )}
             </ScatterPlot>
           </div>
 

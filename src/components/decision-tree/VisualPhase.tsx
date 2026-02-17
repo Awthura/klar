@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import PhaseHeader from "@/components/shared/PhaseHeader";
 import StepControls from "@/components/shared/StepControls";
 import MathBlock from "@/components/shared/MathBlock";
-import ScatterPlot, { useScales, DEFAULT_COLORS } from "@/components/shared/ml/ScatterPlot";
+import ScatterPlot, { DEFAULT_COLORS } from "@/components/shared/ml/ScatterPlot";
+import type { ScaleFn } from "@/components/shared/ml/ScatterPlot";
 import { decisionTreeTrace, dtData, TreeNode } from "@/lib/traces/decisionTree";
 
 const PLOT_W = 460;
@@ -16,17 +17,14 @@ const X_RANGE: [number, number] = [0, 7];
 const Y_RANGE: [number, number] = [0, 6];
 
 function TreeVisualization({ tree, activeNodeId }: { tree: TreeNode[]; activeNodeId: number }) {
-  // Layout tree nodes
   const nodePositions: Record<number, { x: number; y: number }> = {};
   const maxDepth = Math.max(...tree.map((n) => n.depth));
   const levelWidths: Record<number, number> = {};
 
-  // Count nodes per level
   for (const node of tree) {
     levelWidths[node.depth] = (levelWidths[node.depth] || 0) + 1;
   }
 
-  // Assign positions
   const levelCounters: Record<number, number> = {};
   for (const node of tree) {
     const depth = node.depth;
@@ -128,7 +126,6 @@ export default function DecisionTreeVisualPhase() {
   );
 
   const points = dtData.map((d) => ({ x: d.x1, y: d.x2, label: d.label }));
-  const { scaleX, scaleY } = useScales(points, PLOT_W, PLOT_H, X_RANGE, Y_RANGE);
 
   return (
     <section className="mb-16">
@@ -155,47 +152,50 @@ export default function DecisionTreeVisualPhase() {
               width={PLOT_W}
               height={PLOT_H}
               points={points}
-              xLabel="x₁"
-              yLabel="x₂"
+              xLabel="x\u2081"
+              yLabel="x\u2082"
               xRange={X_RANGE}
               yRange={Y_RANGE}
             >
-              {/* Partition lines */}
-              {current.splitLines.map((split, i) => {
-                if (split.feature === "x1") {
-                  return (
-                    <motion.line
-                      key={`split-${i}`}
-                      x1={scaleX(split.threshold)}
-                      y1={scaleY(Y_RANGE[0])}
-                      x2={scaleX(split.threshold)}
-                      y2={scaleY(Y_RANGE[1])}
-                      stroke="#f59e0b"
-                      strokeWidth={2}
-                      strokeDasharray="6,3"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 0.8 }}
-                    />
-                  );
-                } else {
-                  // x2 split — only applies to left partition (x1 <= first threshold)
-                  const firstSplit = current.splitLines[0];
-                  return (
-                    <motion.line
-                      key={`split-${i}`}
-                      x1={scaleX(X_RANGE[0])}
-                      y1={scaleY(split.threshold)}
-                      x2={scaleX(firstSplit?.threshold ?? X_RANGE[1])}
-                      y2={scaleY(split.threshold)}
-                      stroke="#22c55e"
-                      strokeWidth={2}
-                      strokeDasharray="6,3"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 0.8 }}
-                    />
-                  );
-                }
-              })}
+              {(sx: ScaleFn, sy: ScaleFn) => (
+                <>
+                  {/* Partition lines */}
+                  {current.splitLines.map((split, i) => {
+                    if (split.feature === "x1") {
+                      return (
+                        <motion.line
+                          key={`split-${i}`}
+                          x1={sx(split.threshold)}
+                          y1={sy(Y_RANGE[0])}
+                          x2={sx(split.threshold)}
+                          y2={sy(Y_RANGE[1])}
+                          stroke="#f59e0b"
+                          strokeWidth={2}
+                          strokeDasharray="6,3"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 0.8 }}
+                        />
+                      );
+                    } else {
+                      const firstSplit = current.splitLines[0];
+                      return (
+                        <motion.line
+                          key={`split-${i}`}
+                          x1={sx(X_RANGE[0])}
+                          y1={sy(split.threshold)}
+                          x2={sx(firstSplit?.threshold ?? X_RANGE[1])}
+                          y2={sy(split.threshold)}
+                          stroke="#22c55e"
+                          strokeWidth={2}
+                          strokeDasharray="6,3"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 0.8 }}
+                        />
+                      );
+                    }
+                  })}
+                </>
+              )}
             </ScatterPlot>
           </div>
         </div>

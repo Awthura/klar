@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import PhaseHeader from "@/components/shared/PhaseHeader";
 import StepControls from "@/components/shared/StepControls";
 import MathBlock from "@/components/shared/MathBlock";
-import ScatterPlot, { useScales, DEFAULT_COLORS } from "@/components/shared/ml/ScatterPlot";
+import ScatterPlot, { DEFAULT_COLORS } from "@/components/shared/ml/ScatterPlot";
+import type { ScaleFn } from "@/components/shared/ml/ScatterPlot";
 import LossCurve from "@/components/shared/ml/LossCurve";
 import { kMeansTrace, kMeansData } from "@/lib/traces/kMeans";
 
@@ -44,8 +45,6 @@ export default function KMeansVisualPhase() {
     return CENTROID_COLORS[assignment] || DEFAULT_COLORS[0];
   });
 
-  const { scaleX, scaleY } = useScales(points, PLOT_W, PLOT_H, X_RANGE, Y_RANGE);
-
   // Collect WCSS values for loss curve (only from steps that have WCSS > 0)
   const wcssValues = trace.filter((t) => t.wcss > 0).map((t) => t.wcss);
   const wcssStepIdx = trace.slice(0, step + 1).filter((t) => t.wcss > 0).length - 1;
@@ -67,45 +66,49 @@ export default function KMeansVisualPhase() {
               height={PLOT_H}
               points={points}
               pointColors={pointColors}
-              xLabel="x₁"
-              yLabel="x₂"
+              xLabel="x\u2081"
+              yLabel="x\u2082"
               xRange={X_RANGE}
               yRange={Y_RANGE}
             >
-              {/* Centroids as larger markers */}
-              {current.centroids.map((c, ci) => (
-                <g key={`centroid-${ci}`}>
-                  <motion.rect
-                    x={scaleX(c.x) - 8}
-                    y={scaleY(c.y) - 8}
-                    width={16}
-                    height={16}
-                    rx={3}
-                    fill={CENTROID_COLORS[ci]}
-                    stroke="#fff"
-                    strokeWidth={2}
-                    animate={{
-                      x: scaleX(c.x) - 8,
-                      y: scaleY(c.y) - 8,
-                    }}
-                    transition={{ duration: 0.5 }}
-                  />
-                  <motion.text
-                    x={scaleX(c.x)}
-                    y={scaleY(c.y) - 14}
-                    textAnchor="middle"
-                    className="text-[9px] font-bold"
-                    fill={CENTROID_COLORS[ci]}
-                    animate={{
-                      x: scaleX(c.x),
-                      y: scaleY(c.y) - 14,
-                    }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    {"\u03BC"}{ci + 1}
-                  </motion.text>
-                </g>
-              ))}
+              {(sx: ScaleFn, sy: ScaleFn) => (
+                <>
+                  {/* Centroids as larger markers */}
+                  {current.centroids.map((c, ci) => (
+                    <g key={`centroid-${ci}`}>
+                      <motion.rect
+                        x={sx(c.x) - 8}
+                        y={sy(c.y) - 8}
+                        width={16}
+                        height={16}
+                        rx={3}
+                        fill={CENTROID_COLORS[ci]}
+                        stroke="#fff"
+                        strokeWidth={2}
+                        animate={{
+                          x: sx(c.x) - 8,
+                          y: sy(c.y) - 8,
+                        }}
+                        transition={{ duration: 0.5 }}
+                      />
+                      <motion.text
+                        x={sx(c.x)}
+                        y={sy(c.y) - 14}
+                        textAnchor="middle"
+                        className="text-[9px] font-bold"
+                        fill={CENTROID_COLORS[ci]}
+                        animate={{
+                          x: sx(c.x),
+                          y: sy(c.y) - 14,
+                        }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        {"\u03BC"}{ci + 1}
+                      </motion.text>
+                    </g>
+                  ))}
+                </>
+              )}
             </ScatterPlot>
           </div>
 
@@ -121,7 +124,7 @@ export default function KMeansVisualPhase() {
               />
             )}
             <div className="mt-3 text-xs text-muted space-y-1">
-              <p>WCSS = {current.wcss > 0 ? current.wcss.toFixed(2) : "—"}</p>
+              <p>WCSS = {current.wcss > 0 ? current.wcss.toFixed(2) : "\u2014"}</p>
               <p>Phase: {current.phase}</p>
             </div>
           </div>

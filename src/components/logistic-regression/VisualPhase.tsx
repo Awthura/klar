@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import PhaseHeader from "@/components/shared/PhaseHeader";
 import StepControls from "@/components/shared/StepControls";
 import MathBlock from "@/components/shared/MathBlock";
-import ScatterPlot, { useScales, DEFAULT_COLORS } from "@/components/shared/ml/ScatterPlot";
+import ScatterPlot, { DEFAULT_COLORS } from "@/components/shared/ml/ScatterPlot";
+import type { ScaleFn } from "@/components/shared/ml/ScatterPlot";
 import LossCurve from "@/components/shared/ml/LossCurve";
 import { logisticRegressionTrace, logRegData } from "@/lib/traces/logisticRegression";
 
@@ -31,7 +32,6 @@ export default function LogisticRegressionVisualPhase() {
   );
 
   const points = logRegData.map((d) => ({ x: d.x1, y: d.x2, label: d.label }));
-  const { scaleX, scaleY, plotW, plotH } = useScales(points, PLOT_W, PLOT_H, X_RANGE, Y_RANGE);
 
   // Decision boundary: w1*x1 + w2*x2 + b = 0 => x2 = -(w1/w2)*x1 - b/w2
   const { w1, w2, b } = current;
@@ -59,62 +59,52 @@ export default function LogisticRegressionVisualPhase() {
               width={PLOT_W}
               height={PLOT_H}
               points={points}
-              xLabel="x₁"
-              yLabel="x₂"
+              xLabel="x\u2081"
+              yLabel="x\u2082"
               xRange={X_RANGE}
               yRange={Y_RANGE}
             >
-              {/* Shaded regions */}
-              {hasLine && (
+              {(sx: ScaleFn, sy: ScaleFn) => (
                 <>
-                  <defs>
-                    <clipPath id="plot-clip">
-                      <rect x={50} y={20} width={plotW} height={plotH} />
-                    </clipPath>
-                  </defs>
-                  {/* Class 1 region (above boundary) */}
-                  <motion.polygon
-                    points={`${scaleX(boundaryX1)},${scaleY(boundaryY1)} ${scaleX(boundaryX2)},${scaleY(boundaryY2)} ${scaleX(boundaryX2)},${scaleY(Y_RANGE[1])} ${scaleX(boundaryX1)},${scaleY(Y_RANGE[1])}`}
-                    fill={DEFAULT_COLORS[1]}
-                    opacity={0.08}
-                    clipPath="url(#plot-clip)"
-                    animate={{
-                      points: `${scaleX(boundaryX1)},${scaleY(boundaryY1)} ${scaleX(boundaryX2)},${scaleY(boundaryY2)} ${scaleX(boundaryX2)},${scaleY(Y_RANGE[1])} ${scaleX(boundaryX1)},${scaleY(Y_RANGE[1])}`,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  />
-                  {/* Class 0 region (below boundary) */}
-                  <motion.polygon
-                    points={`${scaleX(boundaryX1)},${scaleY(boundaryY1)} ${scaleX(boundaryX2)},${scaleY(boundaryY2)} ${scaleX(boundaryX2)},${scaleY(Y_RANGE[0])} ${scaleX(boundaryX1)},${scaleY(Y_RANGE[0])}`}
-                    fill={DEFAULT_COLORS[0]}
-                    opacity={0.08}
-                    clipPath="url(#plot-clip)"
-                    animate={{
-                      points: `${scaleX(boundaryX1)},${scaleY(boundaryY1)} ${scaleX(boundaryX2)},${scaleY(boundaryY2)} ${scaleX(boundaryX2)},${scaleY(Y_RANGE[0])} ${scaleX(boundaryX1)},${scaleY(Y_RANGE[0])}`,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  />
-                </>
-              )}
+                  {/* Shaded regions — use plain polygon (not motion) since points attr is a string */}
+                  {hasLine && (
+                    <g clipPath={`url(#plot-clip-${PLOT_W}-${PLOT_H})`}>
+                      {/* Class 1 region (above boundary) */}
+                      <polygon
+                        points={`${sx(boundaryX1)},${sy(boundaryY1)} ${sx(boundaryX2)},${sy(boundaryY2)} ${sx(boundaryX2)},${sy(Y_RANGE[1])} ${sx(boundaryX1)},${sy(Y_RANGE[1])}`}
+                        fill={DEFAULT_COLORS[1]}
+                        opacity={0.08}
+                      />
+                      {/* Class 0 region (below boundary) */}
+                      <polygon
+                        points={`${sx(boundaryX1)},${sy(boundaryY1)} ${sx(boundaryX2)},${sy(boundaryY2)} ${sx(boundaryX2)},${sy(Y_RANGE[0])} ${sx(boundaryX1)},${sy(Y_RANGE[0])}`}
+                        fill={DEFAULT_COLORS[0]}
+                        opacity={0.08}
+                      />
+                    </g>
+                  )}
 
-              {/* Decision boundary line */}
-              {hasLine && (
-                <motion.line
-                  x1={scaleX(boundaryX1)}
-                  y1={scaleY(boundaryY1)}
-                  x2={scaleX(boundaryX2)}
-                  y2={scaleY(boundaryY2)}
-                  stroke="#fff"
-                  strokeWidth={2}
-                  strokeDasharray="6,3"
-                  animate={{
-                    x1: scaleX(boundaryX1),
-                    y1: scaleY(boundaryY1),
-                    x2: scaleX(boundaryX2),
-                    y2: scaleY(boundaryY2),
-                  }}
-                  transition={{ duration: 0.4 }}
-                />
+                  {/* Decision boundary line */}
+                  {hasLine && (
+                    <motion.line
+                      x1={sx(boundaryX1)}
+                      y1={sy(boundaryY1)}
+                      x2={sx(boundaryX2)}
+                      y2={sy(boundaryY2)}
+                      stroke="#fff"
+                      strokeWidth={2}
+                      strokeDasharray="6,3"
+                      clipPath={`url(#plot-clip-${PLOT_W}-${PLOT_H})`}
+                      animate={{
+                        x1: sx(boundaryX1),
+                        y1: sy(boundaryY1),
+                        x2: sx(boundaryX2),
+                        y2: sy(boundaryY2),
+                      }}
+                      transition={{ duration: 0.4 }}
+                    />
+                  )}
+                </>
               )}
             </ScatterPlot>
           </div>
@@ -129,7 +119,7 @@ export default function LogisticRegressionVisualPhase() {
               yLabel="BCE Loss"
             />
             <div className="mt-3 text-xs text-muted space-y-1">
-              <p>w₁ = {current.w1.toFixed(3)}, w₂ = {current.w2.toFixed(3)}</p>
+              <p>w\u2081 = {current.w1.toFixed(3)}, w\u2082 = {current.w2.toFixed(3)}</p>
               <p>b = {current.b.toFixed(3)}</p>
               <p>Loss = {current.loss.toFixed(3)}</p>
             </div>

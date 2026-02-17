@@ -8,20 +8,26 @@ export interface KnnStep {
   mathConcept: string;
 }
 
+// 3-class dataset with clear visual separation
 export const knnData = [
-  { x: 1.0, y: 2.0, label: 0 },
-  { x: 1.5, y: 1.8, label: 0 },
-  { x: 2.0, y: 3.0, label: 0 },
-  { x: 3.0, y: 3.5, label: 0 },
-  { x: 5.0, y: 5.0, label: 1 },
-  { x: 5.5, y: 4.5, label: 1 },
-  { x: 6.0, y: 5.5, label: 1 },
-  { x: 6.5, y: 6.0, label: 1 },
-  { x: 3.5, y: 4.0, label: 0 },
-  { x: 4.5, y: 4.8, label: 1 },
+  // Class 0 — bottom-left cluster
+  { x: 1.0, y: 1.0, label: 0 },
+  { x: 1.5, y: 1.5, label: 0 },
+  { x: 1.2, y: 2.0, label: 0 },
+  { x: 2.0, y: 1.2, label: 0 },
+  // Class 1 — top cluster
+  { x: 3.5, y: 6.0, label: 1 },
+  { x: 4.0, y: 5.5, label: 1 },
+  { x: 4.5, y: 6.5, label: 1 },
+  { x: 3.0, y: 5.8, label: 1 },
+  // Class 2 — right cluster
+  { x: 6.5, y: 2.5, label: 2 },
+  { x: 7.0, y: 3.0, label: 2 },
+  { x: 7.5, y: 2.0, label: 2 },
+  { x: 7.0, y: 1.5, label: 2 },
 ];
 
-export const knnQuery = { x: 4.0, y: 4.2 };
+export const knnQuery = { x: 5.0, y: 3.5 };
 export const knnK = 3;
 
 function euclidean(a: { x: number; y: number }, b: { x: number; y: number }) {
@@ -39,7 +45,7 @@ function computeTrace(): KnnStep[] {
     distances: [],
     selectedK: [],
     prediction: null,
-    description: `Query point: (${q.x}, ${q.y}). We need to classify it using its ${knnK} nearest neighbors.`,
+    description: `Query point: (${q.x}, ${q.y}). Classify using its ${knnK} nearest neighbors among 3 classes.`,
     mathConcept: `\\text{query} = (${q.x}, ${q.y}),\\; k = ${knnK}`,
   });
 
@@ -133,17 +139,17 @@ export const knnCode = `def knn_classify(X_train, y_train, query, k=3):
 export const knnBridge: { math: string; codeLine: number; description: string }[] = [
   {
     math: "d(q, x_i) = \\sqrt{\\sum_j (q_j - x_{ij})^2}",
-    codeLine: 3,
+    codeLine: 4,
     description: "Compute Euclidean distance from query to each training point",
   },
   {
     math: "\\text{sort}\\{d(q, x_i)\\}",
-    codeLine: 5,
+    codeLine: 6,
     description: "Sort all distances in ascending order",
   },
   {
     math: "\\mathcal{N}_k(q) = \\text{top-}k \\text{ nearest}",
-    codeLine: 6,
+    codeLine: 7,
     description: "Select the k nearest neighbors",
   },
   {
@@ -153,7 +159,7 @@ export const knnBridge: { math: string; codeLine: number; description: string }[
   },
   {
     math: "\\hat{y} = \\arg\\max_c \\text{votes}(c)",
-    codeLine: 10,
+    codeLine: 12,
     description: "Return the class with the most votes",
   },
 ];

@@ -8,6 +8,8 @@ export interface Point {
   label?: number; // class label for classification
 }
 
+export type ScaleFn = (v: number) => number;
+
 interface ScatterPlotProps {
   width?: number;
   height?: number;
@@ -20,7 +22,7 @@ interface ScatterPlotProps {
   highlightIndices?: number[];
   highlightColor?: string;
   className?: string;
-  children?: React.ReactNode; // overlay SVG elements (lines, regions, etc.)
+  children?: ((scaleX: ScaleFn, scaleY: ScaleFn) => React.ReactNode) | React.ReactNode;
 }
 
 const PADDING = { top: 20, right: 20, bottom: 40, left: 50 };
@@ -31,8 +33,8 @@ export default function ScatterPlot({
   width = 500,
   height = 350,
   points,
-  xLabel = "x₁",
-  yLabel = "x₂",
+  xLabel = "x\u2081",
+  yLabel = "x\u2082",
   xRange,
   yRange,
   pointColors,
@@ -49,8 +51,8 @@ export default function ScatterPlot({
   const [xMin, xMax] = xRange ?? [Math.min(...xs) - 0.5, Math.max(...xs) + 0.5];
   const [yMin, yMax] = yRange ?? [Math.min(...ys) - 0.5, Math.max(...ys) + 0.5];
 
-  const scaleX = (v: number) => PADDING.left + ((v - xMin) / (xMax - xMin)) * plotW;
-  const scaleY = (v: number) => PADDING.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+  const scaleX: ScaleFn = (v) => PADDING.left + ((v - xMin) / (xMax - xMin)) * plotW;
+  const scaleY: ScaleFn = (v) => PADDING.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
 
   // Tick marks
   const xTicks = 5;
@@ -58,8 +60,18 @@ export default function ScatterPlot({
   const xTickVals = Array.from({ length: xTicks + 1 }, (_, i) => xMin + (i / xTicks) * (xMax - xMin));
   const yTickVals = Array.from({ length: yTicks + 1 }, (_, i) => yMin + (i / yTicks) * (yMax - yMin));
 
+  // Resolve children — render-prop or static
+  const resolvedChildren = typeof children === "function" ? children(scaleX, scaleY) : children;
+
   return (
     <svg width={width} height={height} className={`overflow-visible ${className}`}>
+      {/* Clip path for overlays */}
+      <defs>
+        <clipPath id={`plot-clip-${width}-${height}`}>
+          <rect x={PADDING.left} y={PADDING.top} width={plotW} height={plotH} />
+        </clipPath>
+      </defs>
+
       {/* Grid lines */}
       {xTickVals.map((v, i) => (
         <line key={`xg${i}`} x1={scaleX(v)} y1={PADDING.top} x2={scaleX(v)} y2={PADDING.top + plotH} stroke="#2a2a2a" strokeWidth={0.5} />
@@ -89,9 +101,7 @@ export default function ScatterPlot({
       ))}
 
       {/* Overlay children (lines, regions, etc.) rendered behind points but above grid */}
-      {typeof children === "function"
-        ? (children as (scaleX: (v: number) => number, scaleY: (v: number) => number) => React.ReactNode)(scaleX, scaleY)
-        : children}
+      {resolvedChildren}
 
       {/* Points */}
       {points.map((p, i) => {
@@ -127,20 +137,3 @@ export default function ScatterPlot({
 
 export { PADDING, DEFAULT_COLORS };
 export type { ScatterPlotProps };
-export function useScales(
-  points: Point[],
-  width: number,
-  height: number,
-  xRange?: [number, number],
-  yRange?: [number, number]
-) {
-  const plotW = width - PADDING.left - PADDING.right;
-  const plotH = height - PADDING.top - PADDING.bottom;
-  const xs = points.map((p) => p.x);
-  const ys = points.map((p) => p.y);
-  const [xMin, xMax] = xRange ?? [Math.min(...xs) - 0.5, Math.max(...xs) + 0.5];
-  const [yMin, yMax] = yRange ?? [Math.min(...ys) - 0.5, Math.max(...ys) + 0.5];
-  const scaleX = (v: number) => PADDING.left + ((v - xMin) / (xMax - xMin)) * plotW;
-  const scaleY = (v: number) => PADDING.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
-  return { scaleX, scaleY, plotW, plotH, xMin, xMax, yMin, yMax };
-}

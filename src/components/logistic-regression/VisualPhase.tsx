@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
 import PhaseHeader from "@/components/shared/PhaseHeader";
 import StepControls from "@/components/shared/StepControls";
 import MathBlock from "@/components/shared/MathBlock";
@@ -59,8 +58,8 @@ export default function LogisticRegressionVisualPhase() {
               width={PLOT_W}
               height={PLOT_H}
               points={points}
-              xLabel="x\u2081"
-              yLabel="x\u2082"
+              xLabel="x₁"
+              yLabel="x₂"
               xRange={X_RANGE}
               yRange={Y_RANGE}
             >
@@ -86,7 +85,7 @@ export default function LogisticRegressionVisualPhase() {
 
                   {/* Decision boundary line */}
                   {hasLine && (
-                    <motion.line
+                    <line
                       x1={sx(boundaryX1)}
                       y1={sy(boundaryY1)}
                       x2={sx(boundaryX2)}
@@ -95,13 +94,6 @@ export default function LogisticRegressionVisualPhase() {
                       strokeWidth={2}
                       strokeDasharray="6,3"
                       clipPath={`url(#plot-clip-${PLOT_W}-${PLOT_H})`}
-                      animate={{
-                        x1: sx(boundaryX1),
-                        y1: sy(boundaryY1),
-                        x2: sx(boundaryX2),
-                        y2: sy(boundaryY2),
-                      }}
-                      transition={{ duration: 0.4 }}
                     />
                   )}
                 </>
@@ -119,7 +111,7 @@ export default function LogisticRegressionVisualPhase() {
               yLabel="BCE Loss"
             />
             <div className="mt-3 text-xs text-muted space-y-1">
-              <p>w\u2081 = {current.w1.toFixed(3)}, w\u2082 = {current.w2.toFixed(3)}</p>
+              <p>w₁ = {current.w1.toFixed(3)}, w₂ = {current.w2.toFixed(3)}</p>
               <p>b = {current.b.toFixed(3)}</p>
               <p>Loss = {current.loss.toFixed(3)}</p>
             </div>

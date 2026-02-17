@@ -34,13 +34,13 @@ function computeTrace(): LogisticRegressionStep[] {
   const steps: LogisticRegressionStep[] = [];
   const data = logRegData;
   const n = data.length;
-  const lr = 0.1;
+  const lr = 0.5;
 
   let w1 = 0;
   let w2 = 0;
   let b = 0;
 
-  for (let iter = 0; iter <= 15; iter++) {
+  for (let iter = 0; iter <= 20; iter++) {
     // Compute loss (binary cross-entropy)
     let totalLoss = 0;
     let dw1 = 0;

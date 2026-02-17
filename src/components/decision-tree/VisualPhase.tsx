@@ -152,8 +152,8 @@ export default function DecisionTreeVisualPhase() {
               width={PLOT_W}
               height={PLOT_H}
               points={points}
-              xLabel="x\u2081"
-              yLabel="x\u2082"
+              xLabel="x₁"
+              yLabel="x₂"
               xRange={X_RANGE}
               yRange={Y_RANGE}
             >

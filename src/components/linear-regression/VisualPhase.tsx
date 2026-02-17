@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
 import PhaseHeader from "@/components/shared/PhaseHeader";
 import StepControls from "@/components/shared/StepControls";
 import MathBlock from "@/components/shared/MathBlock";
@@ -63,27 +62,20 @@ export default function LinearRegressionVisualPhase() {
               {(sx, sy) => (
                 <>
                   {/* Regression line */}
-                  <motion.line
+                  <line
                     x1={sx(lineX1)}
                     y1={sy(lineY1)}
                     x2={sx(lineX2)}
                     y2={sy(lineY2)}
                     stroke="#22c55e"
                     strokeWidth={2}
-                    animate={{
-                      x1: sx(lineX1),
-                      y1: sy(lineY1),
-                      x2: sx(lineX2),
-                      y2: sy(lineY2),
-                    }}
-                    transition={{ duration: 0.4 }}
                   />
 
                   {/* Residual lines */}
                   {lrData.map((d, i) => {
                     const pred = current.w * d.x + current.b;
                     return (
-                      <motion.line
+                      <line
                         key={i}
                         x1={sx(d.x)}
                         y1={sy(d.y)}
@@ -93,10 +85,6 @@ export default function LinearRegressionVisualPhase() {
                         strokeWidth={1}
                         strokeDasharray="3,2"
                         opacity={0.6}
-                        animate={{
-                          y2: sy(pred),
-                        }}
-                        transition={{ duration: 0.4 }}
                       />
                     );
                   })}

@@ -66,46 +66,43 @@ export default function KMeansVisualPhase() {
               height={PLOT_H}
               points={points}
               pointColors={pointColors}
-              xLabel="x\u2081"
-              yLabel="x\u2082"
+              xLabel="x₁"
+              yLabel="x₂"
               xRange={X_RANGE}
               yRange={Y_RANGE}
             >
               {(sx: ScaleFn, sy: ScaleFn) => (
                 <>
-                  {/* Centroids as larger markers */}
+                  {/* Centroids as larger markers — use motion.g to avoid x/y doubling */}
                   {current.centroids.map((c, ci) => (
-                    <g key={`centroid-${ci}`}>
-                      <motion.rect
-                        x={sx(c.x) - 8}
-                        y={sy(c.y) - 8}
+                    <motion.g
+                      key={`centroid-${ci}`}
+                      animate={{
+                        x: sx(c.x),
+                        y: sy(c.y),
+                      }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <rect
+                        x={-8}
+                        y={-8}
                         width={16}
                         height={16}
                         rx={3}
                         fill={CENTROID_COLORS[ci]}
                         stroke="#fff"
                         strokeWidth={2}
-                        animate={{
-                          x: sx(c.x) - 8,
-                          y: sy(c.y) - 8,
-                        }}
-                        transition={{ duration: 0.5 }}
                       />
-                      <motion.text
-                        x={sx(c.x)}
-                        y={sy(c.y) - 14}
+                      <text
+                        x={0}
+                        y={-14}
                         textAnchor="middle"
                         className="text-[9px] font-bold"
                         fill={CENTROID_COLORS[ci]}
-                        animate={{
-                          x: sx(c.x),
-                          y: sy(c.y) - 14,
-                        }}
-                        transition={{ duration: 0.5 }}
                       >
-                        {"\u03BC"}{ci + 1}
-                      </motion.text>
-                    </g>
+                        {"μ"}{ci + 1}
+                      </text>
+                    </motion.g>
                   ))}
                 </>
               )}

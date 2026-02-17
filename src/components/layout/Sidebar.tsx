@@ -20,9 +20,16 @@ export default function Sidebar() {
       <nav className="flex-1 overflow-y-auto p-4">
         {subjects.map((subject) => (
           <div key={subject.slug} className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-3 px-2">
+            <Link
+              href={subject.basePath}
+              className={`block text-xs font-semibold uppercase tracking-wider mb-3 px-2 transition-colors ${
+                pathname === subject.basePath
+                  ? "text-accent"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
               {subject.icon} {subject.shortName}
-            </p>
+            </Link>
             <ul className="space-y-1">
               {subject.topics.map((topic) => {
                 const href = `${subject.basePath}/${topic.slug}`;

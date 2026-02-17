@@ -61,37 +61,29 @@ export default function Home() {
         </div>
       </div>
 
-      {subjects.map((subject) => (
-        <div key={subject.slug} className="mb-12">
-          <h2 className="text-sm font-semibold uppercase tracking-widest text-muted mb-6">
-            {subject.icon} {subject.name}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {subject.topics.map((topic) => (
-              <Link
-                key={topic.slug}
-                href={`${subject.basePath}/${topic.slug}`}
-                className="group rounded-xl border border-card-border bg-card-bg p-5 transition-all hover:border-accent hover:shadow-lg hover:shadow-accent/5"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium text-muted uppercase tracking-wider">
-                    {topic.category}
-                  </span>
-                  {topic.complexity && (
-                    <span className="rounded-full bg-accent-light px-2.5 py-0.5 text-xs font-medium text-accent">
-                      {topic.complexity}
-                    </span>
-                  )}
-                </div>
-                <h3 className="text-lg font-semibold group-hover:text-accent transition-colors">
-                  {topic.name}
-                </h3>
-                <p className="text-sm text-muted mt-2">{topic.description}</p>
-              </Link>
-            ))}
-          </div>
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted mb-6">
+          Subjects
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {subjects.map((subject) => (
+            <Link
+              key={subject.slug}
+              href={subject.basePath}
+              className="group rounded-xl border border-card-border bg-card-bg p-6 transition-all hover:border-accent hover:shadow-lg hover:shadow-accent/5"
+            >
+              <span className="text-2xl">{subject.icon}</span>
+              <h3 className="text-xl font-semibold mt-3 group-hover:text-accent transition-colors">
+                {subject.name}
+              </h3>
+              <p className="text-sm text-muted mt-2">{subject.description}</p>
+              <span className="inline-block mt-4 text-xs font-medium text-accent">
+                {subject.topics.length} topics &rarr;
+              </span>
+            </Link>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 }

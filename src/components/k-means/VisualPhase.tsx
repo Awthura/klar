@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
 import PhaseHeader from "@/components/shared/PhaseHeader";
 import StepControls from "@/components/shared/StepControls";
 import MathBlock from "@/components/shared/MathBlock";
@@ -73,15 +72,11 @@ export default function KMeansVisualPhase() {
             >
               {(sx: ScaleFn, sy: ScaleFn) => (
                 <>
-                  {/* Centroids as larger markers — use motion.g to avoid x/y doubling */}
+                  {/* Centroids — use native SVG transform (not Framer Motion x/y) */}
                   {current.centroids.map((c, ci) => (
-                    <motion.g
+                    <g
                       key={`centroid-${ci}`}
-                      animate={{
-                        x: sx(c.x),
-                        y: sy(c.y),
-                      }}
-                      transition={{ duration: 0.5 }}
+                      transform={`translate(${sx(c.x)}, ${sy(c.y)})`}
                     >
                       <rect
                         x={-8}
@@ -102,7 +97,7 @@ export default function KMeansVisualPhase() {
                       >
                         {"μ"}{ci + 1}
                       </text>
-                    </motion.g>
+                    </g>
                   ))}
                 </>
               )}

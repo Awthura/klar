@@ -34,28 +34,21 @@ function computeTrace(): LogisticRegressionStep[] {
   const steps: LogisticRegressionStep[] = [];
   const data = logRegData;
   const n = data.length;
-  const lr = 0.5;
+  const lr = 1.0;
+  const innerSteps = 5; // 5 gradient steps per visualization step (60 total)
 
   let w1 = 0;
   let w2 = 0;
   let b = 0;
 
-  for (let iter = 0; iter <= 20; iter++) {
-    // Compute loss (binary cross-entropy)
+  for (let iter = 0; iter <= 12; iter++) {
+    // Compute loss for display (before inner updates)
     let totalLoss = 0;
-    let dw1 = 0;
-    let dw2 = 0;
-    let db = 0;
-
     for (const pt of data) {
       const z = w1 * pt.x1 + w2 * pt.x2 + b;
       const p = sigmoid(z);
       const pClamped = Math.max(1e-7, Math.min(1 - 1e-7, p));
       totalLoss += -(pt.label * Math.log(pClamped) + (1 - pt.label) * Math.log(1 - pClamped));
-      const err = p - pt.label;
-      dw1 += (1 / n) * err * pt.x1;
-      dw2 += (1 / n) * err * pt.x2;
-      db += (1 / n) * err;
     }
 
     const bce = totalLoss / n;
@@ -76,9 +69,23 @@ function computeTrace(): LogisticRegressionStep[] {
           : `w_1=${w1.toFixed(3)},\\; w_2=${w2.toFixed(3)},\\; \\mathcal{L}=${bce.toFixed(3)}`,
     });
 
-    w1 -= lr * dw1;
-    w2 -= lr * dw2;
-    b -= lr * db;
+    // Run multiple gradient steps before the next visualization step
+    for (let s = 0; s < innerSteps; s++) {
+      let dw1 = 0;
+      let dw2 = 0;
+      let db = 0;
+      for (const pt of data) {
+        const z = w1 * pt.x1 + w2 * pt.x2 + b;
+        const p = sigmoid(z);
+        const err = p - pt.label;
+        dw1 += (1 / n) * err * pt.x1;
+        dw2 += (1 / n) * err * pt.x2;
+        db += (1 / n) * err;
+      }
+      w1 -= lr * dw1;
+      w2 -= lr * dw2;
+      b -= lr * db;
+    }
   }
 
   return steps;

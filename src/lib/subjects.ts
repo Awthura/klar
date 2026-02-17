@@ -148,4 +148,50 @@ export const subjects: Subject[] = [
       },
     ],
   },
+  {
+    slug: "ml",
+    name: "Machine Learning",
+    shortName: "ML",
+    description:
+      "Foundational machine learning algorithms through math-first learning.",
+    icon: "🧠",
+    basePath: "/ml",
+    topics: [
+      {
+        slug: "linear-regression",
+        name: "Linear Regression",
+        description:
+          "Fit a line to data by minimizing mean squared error using gradient descent.",
+        category: "Regression",
+      },
+      {
+        slug: "knn",
+        name: "k-Nearest Neighbors",
+        description:
+          "Classify a point by majority vote of its k closest neighbors in feature space.",
+        category: "Classification",
+      },
+      {
+        slug: "k-means",
+        name: "K-Means Clustering",
+        description:
+          "Partition data into k clusters by iteratively assigning points and updating centroids.",
+        category: "Clustering",
+      },
+      {
+        slug: "logistic-regression",
+        name: "Logistic Regression",
+        description:
+          "Binary classification using the sigmoid function and cross-entropy loss.",
+        category: "Classification",
+      },
+      {
+        slug: "decision-tree",
+        name: "Decision Tree",
+        description:
+          "Recursively split feature space using information gain to build interpretable classifiers.",
+        category: "Classification",
+      },
+    ],
+  },
 ];

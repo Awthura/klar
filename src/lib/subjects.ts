@@ -192,6 +192,41 @@ export const subjects: Subject[] = [
           "Recursively split feature space using information gain to build interpretable classifiers.",
         category: "Classification",
       },
+      {
+        slug: "svm",
+        name: "Support Vector Machine",
+        description:
+          "Find the maximum-margin hyperplane that separates two classes, with support vectors defining the boundary.",
+        category: "Classification",
+      },
+      {
+        slug: "pca",
+        name: "Principal Component Analysis",
+        description:
+          "Reduce dimensionality by projecting data onto the directions of maximum variance.",
+        category: "Dimensionality Reduction",
+      },
+      {
+        slug: "random-forest",
+        name: "Random Forest",
+        description:
+          "Ensemble of decision trees trained on bootstrapped data with feature subsampling.",
+        category: "Ensemble",
+      },
+      {
+        slug: "neural-network",
+        name: "Neural Network",
+        description:
+          "Multi-layer perceptron that learns nonlinear decision boundaries via backpropagation.",
+        category: "Deep Learning",
+      },
+      {
+        slug: "naive-bayes",
+        name: "Naive Bayes",
+        description:
+          "Probabilistic classifier using Bayes' theorem with the conditional independence assumption.",
+        category: "Classification",
+      },
     ],
   },
 ];

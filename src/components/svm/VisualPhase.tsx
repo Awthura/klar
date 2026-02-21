@@ -117,7 +117,7 @@ export default function SVMVisualPhase() {
                       <polygon
                         points={lanePolygon}
                         fill="white"
-                        opacity={0.06}
+                        opacity={0.22}
                         clipPath={`url(#plot-clip-${PLOT_W}-${PLOT_H})`}
                       />
                     )}
@@ -209,7 +209,7 @@ export default function SVMVisualPhase() {
             Class +1
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="inline-block w-5 h-0.5 bg-white" style={{ borderTop: "2px dashed white" }} />
+            <svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="white" strokeWidth="2" strokeDasharray="4,2"/></svg>
             Decision boundary
           </span>
           <span className="flex items-center gap-1.5">

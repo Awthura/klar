@@ -186,7 +186,7 @@ export default function PCAVisualPhase() {
                 className="flex items-center justify-center text-[10px] font-bold"
                 style={{ width: `${100 - varianceExplained}%`, background: "#ef4444", color: "#fff" }}
               >
-                {(100 - varianceExplained).toFixed(1)}%
+                {(100 - varianceExplained) >= 8 ? `${(100 - varianceExplained).toFixed(1)}%` : ""}
               </div>
             </div>
             <div className="flex justify-between text-xs text-muted mt-1">

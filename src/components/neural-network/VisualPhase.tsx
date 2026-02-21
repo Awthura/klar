@@ -218,7 +218,7 @@ export default function NeuralNetworkVisualPhase() {
                         width={tileW}
                         height={tileH}
                         fill={color}
-                        opacity={0.15}
+                        opacity={0.22}
                       />
                     );
                   }

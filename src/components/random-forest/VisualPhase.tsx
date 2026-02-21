@@ -61,7 +61,7 @@ export default function RandomForestVisualPhase() {
               Data & Decision Boundaries
             </h4>
             {phase === "bootstrap" && (
-              <div className="absolute top-7 right-2 z-10 rounded-full bg-yellow-500/20 border border-yellow-500/40 px-3 py-1 text-xs font-bold text-yellow-400">
+              <div className="absolute top-7 right-2 z-10 rounded-full bg-white/20 border border-white/40 px-3 py-1 text-xs font-bold text-white">
                 Tree {treeIndex + 1}/5
               </div>
             )}
@@ -74,7 +74,7 @@ export default function RandomForestVisualPhase() {
               xRange={X_RANGE}
               yRange={Y_RANGE}
               highlightIndices={highlightIndices}
-              highlightColor="#f59e0b"
+              highlightColor="#ffffff"
               pointColors={pointColors}
             >
               {(sx: ScaleFn, sy: ScaleFn) => {
@@ -204,7 +204,7 @@ export default function RandomForestVisualPhase() {
           </span>
           {showBootstrap && (
             <span className="flex items-center gap-1.5">
-              <span className="inline-block w-3 h-3 rounded-full bg-yellow-500" />
+              <span className="inline-block w-3 h-3 rounded-full bg-white/70" />
               Bootstrap sample
             </span>
           )}

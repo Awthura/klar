@@ -50,11 +50,12 @@ export default function NeuralNetworkMathPhase() {
         <div className="rounded-xl border border-card-border bg-card-bg p-6">
           <h3 className="text-lg font-semibold mb-3">Forward Pass &amp; Loss</h3>
           <p className="text-muted mb-4">
-            For binary classification, the final output uses sigmoid and the
-            binary cross-entropy loss penalizes confident errors:
+            For multi-class classification, the final layer uses softmax and the
+            categorical cross-entropy loss penalizes confident errors across all{" "}
+            <MathBlock tex="K" /> classes:
           </p>
           <MathBlock
-            tex="\mathcal{L} = -\frac{1}{n}\sum_{i=1}^n\left[y_i\log\hat{y}_i + (1-y_i)\log(1-\hat{y}_i)\right]"
+            tex="\mathcal{L} = -\frac{1}{n}\sum_{i=1}^n\sum_{k=0}^{K-1} Y_{ik}\log\hat{Y}_{ik}"
             display
           />
         </div>

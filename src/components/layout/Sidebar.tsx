@@ -52,7 +52,7 @@ export default function Sidebar() {
             <div key={subject.slug} className="mb-1">
               <button
                 onClick={() => toggle(subject.slug)}
-                className={`w-full flex items-center justify-between text-xs font-semibold uppercase tracking-wider px-2 py-2 rounded-md transition-colors ${
+                className={`w-full flex items-center justify-between text-left text-xs font-semibold uppercase tracking-wider px-2 py-2 rounded-md transition-colors ${
                   isSubjectActive
                     ? "text-accent"
                     : "text-muted hover:text-foreground"

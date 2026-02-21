@@ -8,7 +8,7 @@ export default function AlgorithmsPage() {
     <div className="max-w-4xl mx-auto px-8 py-16">
       <div className="mb-12">
         <h1 className="text-4xl font-bold tracking-tight mb-3">
-          {subject.icon} {subject.name}
+          {subject.name}
         </h1>
         <p className="text-lg text-muted max-w-2xl">{subject.description}</p>
       </div>

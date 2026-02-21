@@ -72,8 +72,7 @@ export default function Home() {
               href={subject.basePath}
               className="group rounded-xl border border-card-border bg-card-bg p-6 transition-all hover:border-accent hover:shadow-lg hover:shadow-accent/5"
             >
-              <span className="text-2xl">{subject.icon}</span>
-              <h3 className="text-xl font-semibold mt-3 group-hover:text-accent transition-colors">
+              <h3 className="text-xl font-semibold group-hover:text-accent transition-colors">
                 {subject.name}
               </h3>
               <p className="text-sm text-muted mt-2">{subject.description}</p>

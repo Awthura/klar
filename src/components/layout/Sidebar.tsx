@@ -32,7 +32,7 @@ export default function Sidebar() {
                   : "text-muted hover:text-foreground"
               }`}
             >
-              {subject.icon} {subject.shortName}
+              {subject.name}
             </Link>
             <ul className="space-y-1">
               {subject.topics.map((topic) => {

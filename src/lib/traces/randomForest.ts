@@ -31,7 +31,7 @@ export const rfData = [
 ];
 
 // 5 pre-defined decision stumps
-const TREES = [
+export const RF_TREES = [
   { feature: "x1" as const, threshold: 3.5 },
   { feature: "x2" as const, threshold: 3.2 },
   { feature: "x1" as const, threshold: 4.0 },
@@ -49,7 +49,7 @@ const BOOTSTRAP_SAMPLES = [
 ];
 
 // Predict with a stump
-function predictStump(x1: number, x2: number, tree: (typeof TREES)[0]): number {
+function predictStump(x1: number, x2: number, tree: (typeof RF_TREES)[0]): number {
   const val = tree.feature === "x1" ? x1 : x2;
   return val <= tree.threshold ? 0 : 1;
 }
@@ -61,11 +61,11 @@ function computeVotes(treesTrainedSoFar: number): {
   finalPredictions: (number | null)[];
 } {
   const votes = rfData.map(() => ({ class0: 0, class1: 0 }));
-  const lastTreePreds = rfData.map((p) => predictStump(p.x1, p.x2, TREES[treesTrainedSoFar - 1]));
+  const lastTreePreds = rfData.map((p) => predictStump(p.x1, p.x2, RF_TREES[treesTrainedSoFar - 1]));
 
   for (let t = 0; t < treesTrainedSoFar; t++) {
     rfData.forEach((p, i) => {
-      const pred = predictStump(p.x1, p.x2, TREES[t]);
+      const pred = predictStump(p.x1, p.x2, RF_TREES[t]);
       if (pred === 0) votes[i].class0++;
       else votes[i].class1++;
     });
@@ -105,8 +105,8 @@ function buildTrace(): RandomForestStep[] {
       phase: "bootstrap",
       treeIndex: t,
       bootstrapIndices: BOOTSTRAP_SAMPLES[t],
-      splitFeature: TREES[t].feature,
-      splitThreshold: TREES[t].threshold,
+      splitFeature: RF_TREES[t].feature,
+      splitThreshold: RF_TREES[t].threshold,
       treePredictions: [],
       votes: t > 0 ? computeVotes(t).votes : emptyVotes,
       finalPredictions: t > 0 ? computeVotes(t).finalPredictions : emptyFinal,
@@ -121,13 +121,13 @@ function buildTrace(): RandomForestStep[] {
       phase: "train_tree",
       treeIndex: t,
       bootstrapIndices: BOOTSTRAP_SAMPLES[t],
-      splitFeature: TREES[t].feature,
-      splitThreshold: TREES[t].threshold,
+      splitFeature: RF_TREES[t].feature,
+      splitThreshold: RF_TREES[t].threshold,
       treePredictions,
       votes,
       finalPredictions,
-      description: `Tree ${t + 1}/5 trained: split on ${TREES[t].feature} ≤ ${TREES[t].threshold}.`,
-      mathConcept: `\\hat{y}_t(x)=\\mathbf{1}[x_{${TREES[t].feature}}\\leq ${TREES[t].threshold}]`,
+      description: `Tree ${t + 1}/5 trained: split on ${RF_TREES[t].feature} ≤ ${RF_TREES[t].threshold}.`,
+      mathConcept: `\\hat{y}_t(x)=\\mathbf{1}[x_{${RF_TREES[t].feature}}\\leq ${RF_TREES[t].threshold}]`,
     });
   }
 
@@ -138,9 +138,9 @@ function buildTrace(): RandomForestStep[] {
     phase: "aggregate",
     treeIndex: 4,
     bootstrapIndices: BOOTSTRAP_SAMPLES[4],
-    splitFeature: TREES[4].feature,
-    splitThreshold: TREES[4].threshold,
-    treePredictions: rfData.map((p) => predictStump(p.x1, p.x2, TREES[4])),
+    splitFeature: RF_TREES[4].feature,
+    splitThreshold: RF_TREES[4].threshold,
+    treePredictions: rfData.map((p) => predictStump(p.x1, p.x2, RF_TREES[4])),
     votes: finalVotes,
     finalPredictions: final,
     description: "Majority vote across all 5 trees to produce final predictions.",
@@ -155,9 +155,9 @@ function buildTrace(): RandomForestStep[] {
     phase: "result",
     treeIndex: 4,
     bootstrapIndices: BOOTSTRAP_SAMPLES[4],
-    splitFeature: TREES[4].feature,
-    splitThreshold: TREES[4].threshold,
-    treePredictions: rfData.map((p) => predictStump(p.x1, p.x2, TREES[4])),
+    splitFeature: RF_TREES[4].feature,
+    splitThreshold: RF_TREES[4].threshold,
+    treePredictions: rfData.map((p) => predictStump(p.x1, p.x2, RF_TREES[4])),
     votes: finalVotes,
     finalPredictions: final,
     description: `Random Forest complete! Accuracy = ${acc}% on training data.`,

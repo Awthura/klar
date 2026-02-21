@@ -6,7 +6,7 @@ import StepControls from "@/components/shared/StepControls";
 import MathBlock from "@/components/shared/MathBlock";
 import ScatterPlot, { DEFAULT_COLORS, PADDING } from "@/components/shared/ml/ScatterPlot";
 import type { ScaleFn } from "@/components/shared/ml/ScatterPlot";
-import { randomForestTrace, rfData } from "@/lib/traces/randomForest";
+import { randomForestTrace, rfData, RF_TREES } from "@/lib/traces/randomForest";
 
 const PLOT_W = 500;
 const PLOT_H = 380;
@@ -31,11 +31,17 @@ export default function RandomForestVisualPhase() {
 
   const { phase, treeIndex, bootstrapIndices, splitFeature, splitThreshold, votes, finalPredictions } = current;
 
-  const showSplit = phase === "train_tree" || phase === "aggregate" || phase === "result";
   const showBootstrap = phase === "bootstrap";
+  const showTrainSplit = phase === "train_tree";
+  const showAllSplits = phase === "aggregate" || phase === "result";
   const showVotes = phase === "aggregate" || phase === "result";
 
-  // Use final predictions to color points when available
+  // How many trees have been fully trained at this step
+  const treesTrainedCount =
+    phase === "init" ? 0 :
+    phase === "bootstrap" ? treeIndex :
+    phase === "train_tree" ? treeIndex + 1 : 5;
+
   const pointColors = finalPredictions.map((pred, i) =>
     pred !== null
       ? DEFAULT_COLORS[pred % DEFAULT_COLORS.length]
@@ -43,7 +49,6 @@ export default function RandomForestVisualPhase() {
   );
 
   const highlightIndices = showBootstrap ? [...new Set(bootstrapIndices)] : [];
-
   const points = rfData.map((d) => ({ x: d.x1, y: d.x2, label: d.label }));
 
   return (
@@ -81,74 +86,66 @@ export default function RandomForestVisualPhase() {
                 const plotW = PLOT_W - PADDING.left - PADDING.right;
                 const plotH = PLOT_H - PADDING.top - PADDING.bottom;
 
-                if (!showSplit) return null;
+                if (!showTrainSplit && !showAllSplits) return null;
 
-                // Draw stump split line (dashed white)
-                const lineEl = splitFeature === "x1" ? (
-                  // Vertical line at x1 = threshold
-                  <line
-                    x1={sx(splitThreshold)} y1={PADDING.top}
-                    x2={sx(splitThreshold)} y2={PADDING.top + plotH}
-                    stroke="white"
-                    strokeWidth={2}
-                    strokeDasharray="5,3"
-                    opacity={0.7}
-                  />
-                ) : (
-                  // Horizontal line at x2 = threshold
-                  <line
-                    x1={PADDING.left} y1={sy(splitThreshold)}
-                    x2={PADDING.left + plotW} y2={sy(splitThreshold)}
-                    stroke="white"
-                    strokeWidth={2}
-                    strokeDasharray="5,3"
-                    opacity={0.7}
-                  />
-                );
+                // Region shading only for the current tree during training
+                let shading = null;
+                if (showTrainSplit) {
+                  const tree = RF_TREES[treeIndex];
+                  shading = tree.feature === "x1" ? (
+                    <>
+                      <rect
+                        x={PADDING.left} y={PADDING.top}
+                        width={sx(tree.threshold) - PADDING.left} height={plotH}
+                        fill={DEFAULT_COLORS[0]} opacity={0.10}
+                      />
+                      <rect
+                        x={sx(tree.threshold)} y={PADDING.top}
+                        width={PADDING.left + plotW - sx(tree.threshold)} height={plotH}
+                        fill={DEFAULT_COLORS[1]} opacity={0.10}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <rect
+                        x={PADDING.left} y={sy(tree.threshold)}
+                        width={plotW}
+                        height={PADDING.top + plotH - sy(tree.threshold)}
+                        fill={DEFAULT_COLORS[0]} opacity={0.10}
+                      />
+                      <rect
+                        x={PADDING.left} y={PADDING.top}
+                        width={plotW}
+                        height={sy(tree.threshold) - PADDING.top}
+                        fill={DEFAULT_COLORS[1]} opacity={0.10}
+                      />
+                    </>
+                  );
+                }
 
-                // Light region shading
-                const shadingEl = splitFeature === "x1" ? (
-                  <>
-                    <rect
-                      x={PADDING.left} y={PADDING.top}
-                      width={sx(splitThreshold) - PADDING.left}
-                      height={plotH}
-                      fill={DEFAULT_COLORS[0]}
-                      opacity={0.06}
+                // Split lines for all trained trees
+                const splitLines = RF_TREES.slice(0, treesTrainedCount).map((tree, idx) => {
+                  const isCurrent = showTrainSplit && idx === treeIndex;
+                  const opacity = showAllSplits ? 0.35 : (isCurrent ? 0.70 : 0.22);
+                  const sw = isCurrent ? 2 : 1.5;
+                  return tree.feature === "x1" ? (
+                    <line key={`s${idx}`}
+                      x1={sx(tree.threshold)} y1={PADDING.top}
+                      x2={sx(tree.threshold)} y2={PADDING.top + plotH}
+                      stroke="white" strokeWidth={sw}
+                      strokeDasharray="5,3" opacity={opacity}
                     />
-                    <rect
-                      x={sx(splitThreshold)} y={PADDING.top}
-                      width={PADDING.left + plotW - sx(splitThreshold)}
-                      height={plotH}
-                      fill={DEFAULT_COLORS[1]}
-                      opacity={0.06}
+                  ) : (
+                    <line key={`s${idx}`}
+                      x1={PADDING.left} y1={sy(tree.threshold)}
+                      x2={PADDING.left + plotW} y2={sy(tree.threshold)}
+                      stroke="white" strokeWidth={sw}
+                      strokeDasharray="5,3" opacity={opacity}
                     />
-                  </>
-                ) : (
-                  <>
-                    <rect
-                      x={PADDING.left} y={sy(splitThreshold)}
-                      width={plotW}
-                      height={PADDING.top + plotH - sy(splitThreshold)}
-                      fill={DEFAULT_COLORS[0]}
-                      opacity={0.06}
-                    />
-                    <rect
-                      x={PADDING.left} y={PADDING.top}
-                      width={plotW}
-                      height={sy(splitThreshold) - PADDING.top}
-                      fill={DEFAULT_COLORS[1]}
-                      opacity={0.06}
-                    />
-                  </>
-                );
+                  );
+                });
 
-                return (
-                  <>
-                    {shadingEl}
-                    {lineEl}
-                  </>
-                );
+                return <>{shading}{splitLines}</>;
               }}
             </ScatterPlot>
           </div>
@@ -161,13 +158,13 @@ export default function RandomForestVisualPhase() {
             <div className="rounded-lg border border-card-border bg-card-bg/50 p-4 space-y-2 text-xs font-mono">
               <div className="flex justify-between gap-4">
                 <span className="text-muted">Trees trained</span>
-                <span>{Math.min(treeIndex + (phase === "bootstrap" ? 0 : 1), 5)}/5</span>
+                <span>{treesTrainedCount}/5</span>
               </div>
               <div className="flex justify-between gap-4">
                 <span className="text-muted">Phase</span>
                 <span className="capitalize">{phase.replace("_", " ")}</span>
               </div>
-              {showSplit && (
+              {showTrainSplit && (
                 <div className="flex justify-between gap-4 pt-2 border-t border-card-border">
                   <span className="text-muted">Split</span>
                   <span>{splitFeature} ≤ {splitThreshold}</span>
@@ -175,18 +172,33 @@ export default function RandomForestVisualPhase() {
               )}
             </div>
 
-            {/* Vote tallies */}
+            {/* Vote bar chart */}
             {showVotes && (
-              <div className="rounded-lg border border-card-border bg-card-bg/50 p-3 space-y-1">
+              <div className="rounded-lg border border-card-border bg-card-bg/50 p-3 space-y-2">
                 <p className="text-xs text-muted font-semibold uppercase tracking-wider mb-2">Vote Tally</p>
-                {rfData.slice(0, 6).map((_, i) => (
-                  <div key={i} className="flex items-center gap-2 text-[10px] font-mono">
-                    <span className="text-muted w-12">pt {i}:</span>
-                    <span className="text-indigo-400">{votes[i].class0}v0</span>
-                    <span className="text-yellow-400">{votes[i].class1}v1</span>
-                  </div>
-                ))}
-                <p className="text-[10px] text-muted mt-1">…showing first 6 points</p>
+                {rfData.slice(0, 6).map((_, i) => {
+                  const total = votes[i].class0 + votes[i].class1;
+                  const pct0 = total > 0 ? (votes[i].class0 / total) * 100 : 50;
+                  return (
+                    <div key={i} className="space-y-0.5">
+                      <div className="flex justify-between items-center text-[10px] font-mono">
+                        <span className="text-muted">pt {i}</span>
+                        <span className="text-muted">{votes[i].class0} : {votes[i].class1}</span>
+                      </div>
+                      <div className="h-2 rounded-full overflow-hidden flex">
+                        <div
+                          className="transition-all duration-300"
+                          style={{ width: `${pct0}%`, background: DEFAULT_COLORS[0] }}
+                        />
+                        <div
+                          className="transition-all duration-300 flex-1"
+                          style={{ background: DEFAULT_COLORS[1] }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+                <p className="text-[10px] text-muted pt-1">First 6 pts · class 0 vs class 1</p>
               </div>
             )}
           </div>
@@ -208,10 +220,10 @@ export default function RandomForestVisualPhase() {
               Bootstrap sample
             </span>
           )}
-          {showSplit && (
+          {(showTrainSplit || showAllSplits) && (
             <span className="flex items-center gap-1.5">
-              <span className="inline-block w-5 h-0.5 bg-white border-dashed" style={{ borderTop: "2px dashed white" }} />
-              Split threshold
+              <span className="inline-block w-5 h-0" style={{ borderTop: "2px dashed white" }} />
+              {showAllSplits ? "All 5 tree splits" : "Current tree split"}
             </span>
           )}
         </div>

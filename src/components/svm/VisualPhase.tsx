@@ -40,7 +40,6 @@ function getBoundaryLineEnds(
   return lineEnds.length >= 2 ? lineEnds : null;
 }
 
-// Get a filled lane polygon between w1*x + w2*y + b = -1 and +1
 function getMarginLanePolygon(
   w1: number, w2: number, b: number,
   xRange: [number, number], yRange: [number, number],
@@ -49,8 +48,46 @@ function getMarginLanePolygon(
   const pos1 = getBoundaryLineEnds(w1, w2, b - 1, xRange, yRange);
   const neg1 = getBoundaryLineEnds(w1, w2, b + 1, xRange, yRange);
   if (!pos1 || !neg1) return null;
-  // Build polygon: pos1[0] → pos1[1] → neg1[1] → neg1[0]
   const pts = [pos1[0], pos1[1], neg1[1], neg1[0]];
+  return pts.map(p => `${sx(p.x)},${sy(p.y)}`).join(" ");
+}
+
+// Polygon covering the half-plane where w1*x + w2*y + b has the given sign (+1 or -1).
+// Traverses the plot boundary corners in order, collecting corners on the desired side
+// and intersection points where the boundary crosses the zero line.
+function getHalfPlanePolygon(
+  w1: number, w2: number, b: number,
+  side: 1 | -1,
+  xRange: [number, number], yRange: [number, number],
+  sx: ScaleFn, sy: ScaleFn
+): string | null {
+  if (Math.abs(w1) < 0.001 && Math.abs(w2) < 0.001) return null;
+  const corners = [
+    { x: xRange[0], y: yRange[1] },
+    { x: xRange[1], y: yRange[1] },
+    { x: xRange[1], y: yRange[0] },
+    { x: xRange[0], y: yRange[0] },
+  ];
+  const eval_ = (pt: { x: number; y: number }) => w1 * pt.x + w2 * pt.y + b;
+  const pts: { x: number; y: number }[] = [];
+
+  for (let i = 0; i < 4; i++) {
+    const curr = corners[i];
+    const next = corners[(i + 1) % 4];
+    const sCurr = eval_(curr);
+    const sNext = eval_(next);
+    // Include corner if on the desired side (or exactly on boundary)
+    if ((side === 1 && sCurr >= 0) || (side === -1 && sCurr <= 0)) {
+      pts.push(curr);
+    }
+    // Include intersection point if edge crosses the decision boundary
+    if ((sCurr > 0) !== (sNext > 0) && Math.abs(sCurr) > 1e-10 && Math.abs(sNext) > 1e-10) {
+      const t = sCurr / (sCurr - sNext);
+      pts.push({ x: curr.x + t * (next.x - curr.x), y: curr.y + t * (next.y - curr.y) });
+    }
+  }
+
+  if (pts.length < 3) return null;
   return pts.map(p => `${sx(p.x)},${sy(p.y)}`).join(" ");
 }
 
@@ -75,6 +112,7 @@ export default function SVMVisualPhase() {
 
   const showMarginLines = phase !== "init";
   const showLane = phase === "identify_support" || phase === "optimize" || phase === "converged";
+  const showHalfPlanes = phase !== "init";
 
   const decisionLine = getBoundaryLineEnds(w1, w2, b, X_RANGE, Y_RANGE);
   const marginPlusLine = showMarginLines ? getBoundaryLineEnds(w1, w2, b - 1, X_RANGE, Y_RANGE) : null;
@@ -106,41 +144,118 @@ export default function SVMVisualPhase() {
               highlightColor="#ffffff"
             >
               {(sx: ScaleFn, sy: ScaleFn) => {
+                // Half-plane shading
+                const posPolygon = showHalfPlanes && decisionLine
+                  ? getHalfPlanePolygon(w1, w2, b, 1, X_RANGE, Y_RANGE, sx, sy)
+                  : null;
+                const negPolygon = showHalfPlanes && decisionLine
+                  ? getHalfPlanePolygon(w1, w2, b, -1, X_RANGE, Y_RANGE, sx, sy)
+                  : null;
+
+                // Margin lane polygon
                 const lanePolygon = showLane
                   ? getMarginLanePolygon(w1, w2, b, X_RANGE, Y_RANGE, sx, sy)
                   : null;
 
+                // Margin width annotation: double-headed arrow between midpoints of margin lines
+                let marginAnnotation = null;
+                if (showLane && marginPlusLine && marginMinusLine && margin > 0) {
+                  const plusMid = {
+                    x: (sx(marginPlusLine[0].x) + sx(marginPlusLine[1].x)) / 2,
+                    y: (sy(marginPlusLine[0].y) + sy(marginPlusLine[1].y)) / 2,
+                  };
+                  const minusMid = {
+                    x: (sx(marginMinusLine[0].x) + sx(marginMinusLine[1].x)) / 2,
+                    y: (sy(marginMinusLine[0].y) + sy(marginMinusLine[1].y)) / 2,
+                  };
+                  const dx = plusMid.x - minusMid.x;
+                  const dy = plusMid.y - minusMid.y;
+                  const len = Math.sqrt(dx * dx + dy * dy);
+                  if (len > 8) {
+                    const ux = dx / len, uy = dy / len; // unit along arrow
+                    const px = -uy, py = ux;            // perpendicular
+                    const as = 6;                        // arrowhead size
+                    // Arrowhead polygons pointing outward from each end
+                    const ah1 = [
+                      `${plusMid.x},${plusMid.y}`,
+                      `${plusMid.x - ux * as - px * as * 0.4},${plusMid.y - uy * as - py * as * 0.4}`,
+                      `${plusMid.x - ux * as + px * as * 0.4},${plusMid.y - uy * as + py * as * 0.4}`,
+                    ].join(" ");
+                    const ah2 = [
+                      `${minusMid.x},${minusMid.y}`,
+                      `${minusMid.x + ux * as - px * as * 0.4},${minusMid.y + uy * as - py * as * 0.4}`,
+                      `${minusMid.x + ux * as + px * as * 0.4},${minusMid.y + uy * as + py * as * 0.4}`,
+                    ].join(" ");
+                    // Label offset perpendicular to arrow
+                    const labelX = (plusMid.x + minusMid.x) / 2 + px * 18;
+                    const labelY = (plusMid.y + minusMid.y) / 2 + py * 18;
+                    marginAnnotation = (
+                      <>
+                        <line
+                          x1={plusMid.x} y1={plusMid.y}
+                          x2={minusMid.x} y2={minusMid.y}
+                          stroke="white" strokeWidth={1.5} opacity={0.75}
+                        />
+                        <polygon points={ah1} fill="white" opacity={0.75} />
+                        <polygon points={ah2} fill="white" opacity={0.75} />
+                        <text
+                          x={labelX} y={labelY}
+                          fill="white" fontSize={11}
+                          textAnchor="middle" dominantBaseline="middle"
+                          fontFamily="ui-monospace, monospace" opacity={0.9}
+                        >
+                          {`γ=${margin.toFixed(2)}`}
+                        </text>
+                      </>
+                    );
+                  }
+                }
+
                 return (
                   <>
-                    {/* Margin lane shading */}
-                    {lanePolygon && (
+                    {/* Half-plane shading — class colors at low opacity */}
+                    {posPolygon && (
                       <polygon
-                        points={lanePolygon}
-                        fill="white"
-                        opacity={0.22}
+                        points={posPolygon}
+                        fill={DEFAULT_COLORS[1]}
+                        opacity={0.09}
+                        clipPath={`url(#plot-clip-${PLOT_W}-${PLOT_H})`}
+                      />
+                    )}
+                    {negPolygon && (
+                      <polygon
+                        points={negPolygon}
+                        fill={DEFAULT_COLORS[0]}
+                        opacity={0.09}
                         clipPath={`url(#plot-clip-${PLOT_W}-${PLOT_H})`}
                       />
                     )}
 
-                    {/* Margin lines */}
+                    {/* Margin lane */}
+                    {lanePolygon && (
+                      <polygon
+                        points={lanePolygon}
+                        fill="white"
+                        opacity={0.15}
+                        clipPath={`url(#plot-clip-${PLOT_W}-${PLOT_H})`}
+                      />
+                    )}
+
+                    {/* Margin boundary lines */}
                     {marginPlusLine && (
                       <line
                         x1={sx(marginPlusLine[0].x)} y1={sy(marginPlusLine[0].y)}
                         x2={sx(marginPlusLine[1].x)} y2={sy(marginPlusLine[1].y)}
-                        stroke={DEFAULT_COLORS[1]}
-                        strokeWidth={1.5}
-                        strokeDasharray="4,3"
-                        opacity={0.7}
+                        stroke={DEFAULT_COLORS[1]} strokeWidth={1.5}
+                        strokeDasharray="4,3" opacity={0.7}
                       />
                     )}
                     {marginMinusLine && (
                       <line
                         x1={sx(marginMinusLine[0].x)} y1={sy(marginMinusLine[0].y)}
                         x2={sx(marginMinusLine[1].x)} y2={sy(marginMinusLine[1].y)}
-                        stroke={DEFAULT_COLORS[0]}
-                        strokeWidth={1.5}
-                        strokeDasharray="4,3"
-                        opacity={0.7}
+                        stroke={DEFAULT_COLORS[0]} strokeWidth={1.5}
+                        strokeDasharray="4,3" opacity={0.7}
                       />
                     )}
 
@@ -149,11 +264,12 @@ export default function SVMVisualPhase() {
                       <line
                         x1={sx(decisionLine[0].x)} y1={sy(decisionLine[0].y)}
                         x2={sx(decisionLine[1].x)} y2={sy(decisionLine[1].y)}
-                        stroke="#fff"
-                        strokeWidth={2}
-                        strokeDasharray="6,3"
+                        stroke="#fff" strokeWidth={2} strokeDasharray="6,3"
                       />
                     )}
+
+                    {/* Margin width annotation */}
+                    {marginAnnotation}
                   </>
                 );
               }}

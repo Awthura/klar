@@ -45,7 +45,7 @@ export default function CodeBlock({
 
   return (
     <div
-      className={`rounded-lg overflow-x-auto text-sm [&_pre]:p-4 [&_pre]:m-0 [&_.line]:px-1 ${className}`}
+      className={`min-w-0 rounded-lg text-sm [&_pre]:p-4 [&_pre]:m-0 [&_pre]:overflow-x-auto [&_.line]:px-1 ${className}`}
       dangerouslySetInnerHTML={{ __html: html }}
       onMouseMove={(e) => {
         if (!onLineHover) return;

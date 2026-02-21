@@ -14,7 +14,7 @@ export default function PhaseHeader({ phase, title, subtitle }: PhaseHeaderProps
   const config = phaseConfig[phase];
 
   return (
-    <div className={`border-l-4 ${config.border} pl-4 mb-8`}>
+    <div id={`phase-${phase}`} className={`scroll-mt-14 border-l-4 ${config.border} pl-4 mb-8`}>
       <div className="flex items-center gap-2 mb-1">
         <span className={`text-xs font-bold uppercase tracking-widest ${config.color}`}>
           {config.label}

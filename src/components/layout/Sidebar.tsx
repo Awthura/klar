@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { subjects } from "@/lib/subjects";
+import Logo from "./Logo";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -11,9 +12,12 @@ export default function Sidebar() {
     <aside className="w-64 shrink-0 border-r border-sidebar-border bg-sidebar-bg h-screen sticky top-0 flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <Link href="/" className="block">
-          <h1 className="text-xl font-bold tracking-tight">
-            <span className="text-accent">KLAR</span>
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <Logo className="w-7 h-7" />
+            <h1 className="text-xl font-bold tracking-tight">
+              <span className="text-accent">KLAR</span>
+            </h1>
+          </div>
         </Link>
       </div>
 

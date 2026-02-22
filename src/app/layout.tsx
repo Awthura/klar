@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "KLAR — Knowledge Lab for Algorithms & Reasoning",
   description: "An open-source platform for learning AI, CS, and ML through formal mathematics, visual explorations, and code bridges.",
+  verification: {
+    google: "E--QtnvzE103l3b9DcqfMq2r4u92z54ZWHam8uOX0jI",
+  },
 };
 
 export default function RootLayout({

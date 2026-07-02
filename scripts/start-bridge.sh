@@ -148,5 +148,15 @@ echo " bridge — this will also take the public page offline."
 echo "======================================================"
 
 # Stay alive until interrupted; if either child dies unexpectedly, stop too.
-wait -n "${SSH_PID}" "${CLOUDFLARED_PID}"
-echo "[!] One of the bridge processes exited unexpectedly."
+# (Not using `wait -n` — macOS ships bash 3.2 by default, which predates it.)
+while true; do
+    if ! kill -0 "${SSH_PID}" 2>/dev/null; then
+        echo "[!] SSH tunnel process exited unexpectedly."
+        break
+    fi
+    if ! kill -0 "${CLOUDFLARED_PID}" 2>/dev/null; then
+        echo "[!] Cloudflare tunnel process exited unexpectedly."
+        break
+    fi
+    sleep 3
+done
